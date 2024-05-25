@@ -1,0 +1,11 @@
+[package]
+name = "wordl-web"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+enigo = { git = "https://github.com/enigo-rs/enigo" }
+autopilot = "0.4.0"
+image = "0.25.1"
