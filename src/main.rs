@@ -137,7 +137,7 @@ fn sort_words(contents: &mut Vec<Vec<char>>) {
 
     contents.sort_by_cached_key(|word| {
         -word.iter().enumerate().map(|(i, c)| 
-            (char_prob[i].get(&c).unwrap_or(&0.0) * 100000.0) as i32 / word.iter().filter(|e| *e == c).count() as i32
+            (char_prob[i].get(&c).unwrap_or(&0.0) * 1000000.0) as i32 / word.iter().filter(|e| *e == c).count() as i32
         ).sum::<i32>()
     });
 }
