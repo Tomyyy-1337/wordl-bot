@@ -9,6 +9,7 @@ a-hey
 a-one
 a-row
 a-sea
+joker
 a-try
 a-two
 a-war

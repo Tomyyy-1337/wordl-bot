@@ -1,3 +1,4 @@
+use std::arch::x86_64::_MM_FLUSH_ZERO_MASK;
 use std::{thread::sleep, time::Duration};
 use std::{collections::{HashMap, HashSet}, io::Write};
 
@@ -49,9 +50,9 @@ fn main() {
             println!("Datei gespeichert. Name: {}", input.trim());
         }
     }
-
+    
     println!("Es wurden {} Wörter mit 5 Buchstaben geladen", contents.len());
-
+    
     sleep(Duration::from_secs(1));
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
     enigo.move_mouse(670, 870, Coordinate::Abs).unwrap();
@@ -60,9 +61,10 @@ fn main() {
         println!("================================================");
         solve_extern(contents.clone());
         sleep(Duration::from_secs(3));
-        enigo.move_mouse(670, 870, Coordinate::Abs).unwrap();
+        enigo.move_mouse(620, 1230, Coordinate::Abs).unwrap();
+        // enigo.move_mouse(670, 870, Coordinate::Abs).unwrap();
         enigo.button(Button::Left, Click).unwrap();
-        sleep(Duration::from_secs(1));
+        sleep(Duration::from_millis(800));
     }
 }
 
@@ -72,8 +74,10 @@ fn solve_extern(mut contents: Vec<Vec<char>>) {
     // enigo.button(Button::Left, Press)?;
     // enigo.button(Button::Left, Release)?;
     
-    let top = (675,464);
+    let top = (245,288);
     let size = 68;
+    // let top = (675,464);
+    // let size = 68;
     enigo.move_mouse(top.0 as i32, top.1 as i32, Coordinate::Abs).unwrap();
     enigo.button(Button::Left, Click).unwrap();
 
@@ -85,14 +89,26 @@ fn solve_extern(mut contents: Vec<Vec<char>>) {
         let mut info = String::new();
         for (indx, word) in contents.iter().enumerate() {
             println!("{} mögliche Lösungen", contents.len() - indx);
-            println!("Eingabe: {}", word.iter().fold(String::new(), |mut a, c| {a.push(*c); a}));
+            print!("Eingabe: {}", word.iter().fold(String::new(), |mut a, c| {a.push(*c); a}));
+            std::io::stdout().flush().unwrap();
             for c in word {
                 enigo.key(Key::Unicode(*c), Click).unwrap();
             }
             enigo.key(Key::Return, Click).unwrap();
-            sleep(Duration::from_secs(2));
+            sleep(Duration::from_millis(470));
+            let pre_result = read_row(row, top, size);
+            if pre_result[0] == 0 {
+                println!(" (nicht in wordlist)");
+                if indx == contents.len() - 1 {
+                    no_solution(row, &mut enigo);
+                    return;
+                }
+                reset(&mut enigo);
+                continue;
+            }
+            sleep(Duration::from_millis(1200));
             let result = read_row(row, top, size);
-            println!("Bewertung: {:?}", result);
+            println!(" {:?}", result);
             if result.iter().find(|&&e| e == 0).is_some() {
                 if indx == contents.len() - 1 {
                     no_solution(row, &mut enigo);
@@ -181,10 +197,10 @@ fn solve(mut contents: Vec<Vec<char>>, index: usize, result: &str) -> Vec<Vec<ch
 fn read_row(indx: usize, top: (usize, usize), size: usize) -> Vec<u8> {
     (0..5).map(|j| (top.0 + j * size, top.1 + indx * size))
         .map(|(x, y)| autopilot::screen::get_color(Point::new(x as f64, y as f64)).unwrap())
-        .map(|pixel| match (pixel[0], pixel[1], pixel[2], pixel[3]) {
-            (58, 58, 60, 255) => 1,
-            (163, 135, 9, 255) => 2,
-            (83, 141, 78, 255) => 3,
+        .map(|pixel| match pixel[0] {
+            40..=79 => 1,
+            100..=220 => 2,
+            80..=99 => 3,
             _ => 0,
         })
         .collect()
