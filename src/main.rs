@@ -7,6 +7,7 @@ use enigo::{
     Direction::Click,
     Enigo, Key, Keyboard, Mouse, Settings,
 };
+use serde::de;
 
 mod wordlist;
 mod config;
@@ -34,21 +35,22 @@ fn main() {
     println!("Konfiguration wurde geladen");
     
     sleep(Duration::from_secs(1));
-    enigo.move_mouse(config_data.initial_click_pos.0, config_data.initial_click_pos.1, Coordinate::Abs).unwrap();
+    enigo.move_mouse(config_data.initial_click_x, config_data.initial_click_y, Coordinate::Abs).unwrap();
     
     loop {
         println!("====================================");
         solve_extern(contents.clone(), &config_data);
         sleep(Duration::from_secs(3));
-        enigo.move_mouse(config_data.restart_button.0, config_data.restart_button.1, Coordinate::Abs).unwrap();
+        enigo.move_mouse(config_data.restart_x, config_data.restart_y, Coordinate::Abs).unwrap();
         enigo.button(Button::Left, Click).unwrap();
         sleep(Duration::from_millis(800));
     }
 }
 
 fn solve_extern(mut contents: Vec<Vec<char>>, config_data: &config::Config) {
+    let start = std::time::Instant::now();
     let mut enigo = Enigo::new(&Settings::default()).unwrap();
-    let top = config_data.top_left_square;
+    let top = (config_data.top_left_square_x, config_data.top_left_square_y);
     let size = config_data.square_size;
     enigo.move_mouse(top.0 as i32, top.1 as i32, Coordinate::Abs).unwrap();
     enigo.button(Button::Left, Click).unwrap();
@@ -90,7 +92,7 @@ fn solve_extern(mut contents: Vec<Vec<char>>, config_data: &config::Config) {
                 continue;
             }
             if result.iter().all(|&e| e == 3) {
-                println!("Lösung gefunden: {}", word.iter().fold(String::new(), |mut a, c| {a.push(*c); a}));
+                println!("Lösung gefunden: {} (time: {:.2}s)", word.iter().fold(String::new(), |mut a, c| {a.push(*c); a}), start.elapsed().as_secs_f32());
                 return;
             }
             info = result.iter().fold(String::new(), |mut a, c| {a.push_str(&c.to_string()); a});
