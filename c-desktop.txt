@@ -1,0 +1,4 @@
+Initial click: 670, 870
+top left square: 675, 464
+square size: 68
+restart button: 670, 870
